@@ -1,0 +1,33 @@
+#!/usr/bin/python
+
+from parse import MailingList
+
+def main():
+
+    # get url
+    print "Type the url to the mailing list archives"
+    input = raw_input()
+
+    # start parser and show available months
+    mail = MailingList(input)
+    months = mail.listMonthTreads()
+
+    print "Took a month to see the patches"
+    for i in range(len(months)):
+        print "%s) %s %s" % (i,months[i-1]["month"] , months[i-1]["year"])
+
+    month = raw_input()
+
+    # list threads per month
+    threads = mail.listThreads(months[int(month)-1]["month"], months[i-1]["year"])
+
+    print "Took a thread to see the content"
+    for i in range(len(threads)):
+        print "%s) %s - Author: %s" % (i,threads[i-1]["subject"] , threads[i-1]["author"])
+
+    thread = raw_input()
+
+    print mail.getPatch(threads[int(thread) -1]["url"])
+
+
+main()
