@@ -60,8 +60,3 @@ class MailingList():
             if i.tag == "pre":
                 return i.text_content()
 
-a = MailingList("http://lists.ovirt.org/pipermail/kimchi-devel")
-print a.listMonthTreads()
-print a.listThreads("February", "2015")
-
-print a.getPatch("http://lists.ovirt.org/pipermail/kimchi-devel/2015-February/009616.html")
