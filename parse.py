@@ -1,5 +1,6 @@
 #/usr/bin/python
 
+import lxml
 import re
 
 from lxml.html import parse
@@ -10,7 +11,6 @@ from utils import getContent
 # CONSTANTS
 #
 MONTH_EXP = re.compile("<A href=\"(?P<year>[0-9]*)-(?P<month>.*)/thread.html")
-THREAD_EXP = re.compile("""<LI><A HREF="(?P<url>.*)">(?P<subject>.*)\n</A><A NAME="[0-9]*">\&nbsp;</A>\n<I>(?P<author>.*)\n</I>\n""")
 THREAD_ID = re.compile("(?P<id>[0-9]*).html")
 
 class MailingList():
@@ -46,21 +46,6 @@ class MailingList():
 
         self.months = [ i.groupdict() for i in MONTH_EXP.finditer(content) ]
 
-    def listThreads(self, month, year):
-        """
-        List threads each month
-        """
-        content = getContent("%s/%s-%s/thread.html" % (self.__url, year, month))
-    
-        threads = [ i.groupdict() for i in THREAD_EXP.finditer(content) ]
-    
-        # append full url
-        for i in range(len(threads)):
-            threads[i]["id"] = THREAD_ID.match(threads[i]["url"]).groupdict()["id"]
-            threads[i]["url"] = "%s/%s-%s/%s" % (self.__url, year, month, threads[i]["url"])
-
-        return threads
-
     def getPatch(self, url):
         """
         Retrieves patch content 
@@ -70,4 +55,52 @@ class MailingList():
         for i in doc.body.getchildren():
             if i.tag == "pre":
                 return i.text_content()
+
+    def listThreadsNew(self, month, year):
+        """
+        List threads using html parser
+        """
+        def encapsulateEmail(email):
+            # get information
+            subject = email[0].text_content()
+            id = THREAD_ID.match(email[0].get("href")).groupdict()["id"]
+            url = "%s/%s-%s/%s" % (self.__url, year, month, email[0].get("href"))
+            author = email[2].text_content()
+
+            return {"subject": subject,
+                    "id": id,
+                    "url": url,
+                    "author": author}
+
+        # download page
+        doc = parse("%s/%s-%s/thread.html" % (self.__url, year, month))
+
+        # get second <ul>, each <li> will be and email
+        emails = doc.getroot().body.getchildren()[5].getchildren()
+
+        threads = []
+
+        for email in emails:
+
+            # to avoid comments, only parse html elements
+            if isinstance(email, lxml.html.HtmlElement) == False:
+                continue
+
+            # is a email: encapsulate
+            mail = encapsulateEmail(email)
+
+            # 4 children: no answers
+            if len(email.getchildren()) > 4:
+
+                # more than 4 children: append answers
+                mail["emails"] = []
+                for submail in email.getchildren()[3].getchildren():
+
+                    # to avoid comments, only parse html elements
+                    if isinstance(submail, lxml.html.HtmlElement):
+                        mail["emails"].append(encapsulateEmail(submail))
+
+            threads.append(mail)
+
+        return threads
 
