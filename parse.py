@@ -23,18 +23,28 @@ class MailingList():
         Create the class setting the url
         """
         self.__url = url
+        self.months = None
 
-    def listMonthTreads(self):
+        # update months
+        self.updateMonths()
+
+    def getMonths(self):
+        """
+        Wrapper for months
+        """
+        return self.months
+
+    def updateMonths(self):
         """
         Retrieves months to search threads
         """
         # download url
         content = getContent(self.__url)
 
-        months = [ i.groupdict() for i in MONTH_EXP.finditer(content) ]
+        if content == "":
+            return None
 
-        # get months
-        return months
+        self.months = [ i.groupdict() for i in MONTH_EXP.finditer(content) ]
 
     def listThreads(self, month, year):
         """

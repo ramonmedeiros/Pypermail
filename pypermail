@@ -2,32 +2,60 @@
 
 from parse import MailingList
 
-def main():
-
-    # get url
-    print "Type the url to the mailing list archives"
-    input = raw_input()
-
-    # start parser and show available months
-    mail = MailingList(input)
-    months = mail.listMonthTreads()
-
-    print "Took a month to see the patches"
-    for i in range(len(months)):
-        print "%s) %s %s" % (i,months[i-1]["month"] , months[i-1]["year"])
-
-    month = raw_input()
-
-    # list threads per month
-    threads = mail.listThreads(months[int(month)-1]["month"], months[i-1]["year"])
-
-    print "Took a thread to see the content"
-    for i in range(len(threads)):
-        print "%s) %s - Author: %s" % (i,threads[i-1]["subject"] , threads[i-1]["author"])
-
-    thread = raw_input()
-
-    print mail.getPatch(threads[int(thread) -1]["url"])
 
 
-main()
+class Menu():
+
+    def __init__(self):
+        """
+        Set mailing list url and load months
+        """
+        self.ml = None
+        self.setMailingList()
+    
+    def setMailingList(self):
+        """
+        Create mailing list object
+        """
+        mlStatus = False
+        while(mlStatus == False):
+            # get url
+            print "Type the url to the mailing list archives"
+            input = raw_input()
+
+            # start parser and show available months
+            ml = MailingList(input)
+
+            # valid url
+            if ml.getMonths() != None:
+                self.ml = ml
+                return
+
+            # invalid url               
+            print "Invalid URL, please add a valid one"
+
+
+    def navigateOnMl(self):
+        print "Took a month to see the patches"
+        for i in range(len(self.ml.getMonths())):
+            print "%s) %s %s" % (i, self.ml.getMonths()[i-1]["month"], 
+                                 self.ml.getMonths()[i-1]["year"])
+
+        month = raw_input()
+
+        # list threads per month
+        threads = self.ml.listThreads(self.ml.getMonths()[int(month)-1]["month"], 
+                                      self.ml.getMonths()[i-1]["year"])
+
+        print "Took a thread to see the content"
+        for i in range(len(threads)):
+            print "%s) %s - Author: %s" % (i,threads[i-1]["subject"] , threads[i-1]["author"])
+
+        thread = raw_input()
+
+        print self.ml.getPatch(threads[int(thread) -1]["url"])
+
+
+
+a =  Menu()
+a.navigateOnMl()
