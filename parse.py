@@ -11,7 +11,7 @@ from utils import getContent
 #
 MONTH_EXP = re.compile("<A href=\"(?P<year>[0-9]*)-(?P<month>.*)/thread.html")
 THREAD_EXP = re.compile("""<LI><A HREF="(?P<url>.*)">(?P<subject>.*)\n</A><A NAME="[0-9]*">\&nbsp;</A>\n<I>(?P<author>.*)\n</I>\n""")
-
+THREAD_ID = re.compile("(?P<id>[0-9]*).html")
 
 class MailingList():
     """
@@ -46,6 +46,7 @@ class MailingList():
     
         # append full url
         for i in range(len(threads)):
+            threads[i]["id"] = THREAD_ID.match(threads[i]["url"]).groupdict()["id"]
             threads[i]["url"] = "%s/%s-%s/%s" % (self.__url, year, month, threads[i]["url"])
 
         return threads
